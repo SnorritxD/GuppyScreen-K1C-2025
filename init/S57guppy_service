@@ -1,0 +1,53 @@
+#!/bin/sh
+
+PROG=/usr/data/guppyscreen/guppyscreen
+PID_FILE=/var/run/guppyscreen.pid
+
+start() {
+    (
+        echo "Waiting for Moonraker + Klipper..."
+
+        timeout=60
+
+        while ! wget -q -O - http://127.0.0.1:7125/server/info 2>/dev/null | grep -q '"klippy_state":"ready"'; do
+            if [ "$timeout" -le 0 ]; then
+                echo "Moonraker/Klipper timeout - starting GuppyScreen anyway."
+                break
+            fi
+
+            sleep 1
+            timeout=$((timeout - 1))
+        done
+
+        echo "Starting GuppyScreen..."
+        start-stop-daemon -S -q -b -m -p $PID_FILE \
+            --exec $PROG
+    ) &
+}
+
+stop() {
+    start-stop-daemon -K -q -p $PID_FILE
+}
+
+restart() {
+    stop
+    start
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    restart|reload)
+        restart
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+        ;;
+esac
+
+exit $?
