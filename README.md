@@ -2,16 +2,29 @@
 
 A custom **GuppyScreen build for the Creality K1C 2025/2026**.
 
-This project is focused on bringing GuppyScreen support to the newer K1C hardware platform using the X2600 MIPS32 little endian architecture.
+This project brings GuppyScreen support to the newer K1C hardware platform using the **X2600 / XBurst II MIPS32 little-endian architecture**.
 
-This release includes:
+This release is specifically intended for the **Creality K1C 2025/2026**.
 
-- K1C 2025/2026 hardware support
-- framebuffer support using `fb1`
-- touchscreen support using `event1`
-- custom startup service
-- bundled assets and themes
-- safe installation and uninstall procedure
+---
+
+## Features
+
+* Creality K1C 2025/2026 support
+* X2600 / XBurst II MIPS32 little-endian support
+* Display framebuffer support using **`/dev/fb1`**
+* 800 × 480 display resolution
+* 32 bpp display format
+* Touchscreen support using **`/dev/input/event1`**
+* `goodix-ts` touchscreen support
+* `jzfb` framebuffer driver support
+* Custom GuppyScreen startup service
+* Bundled assets and themes
+* Automatic installation
+* Safe, verified backups before changes
+* Idempotent installation — safe to run again
+* Automatic detection of an existing GuppyScreen installation
+* Restore/uninstall functionality
 
 ---
 
@@ -21,45 +34,64 @@ This release includes:
 
 This software modifies system components on your Creality K1C.
 
-Although the installer and uninstall process are designed to be safe, unexpected problems can always occur.
+Although the installer and uninstall process are designed with safety checks, backups, validation and rollback protection, unexpected problems can always occur.
 
 Possible risks include:
 
-- GUI not starting
-- printer requiring firmware recovery
-- settings loss
-- incompatibility with future Creality firmware updates
+* GUI not starting
+* Printer requiring firmware recovery
+* Settings loss
+* Incompatibility with future Creality firmware updates
+* Other unexpected printer malfunctions
 
 The author of this repository is **not responsible for any damage, malfunction, data loss, or unusable printers** caused by using this software.
 
-Always make a backup before installing.
+Always make sure you understand what the installer does before running it.
 
-By installing this software, you acknowledge that you are doing this voluntarily and at your own risk.
+By installing this software, you acknowledge that you are doing so voluntarily and at your own risk.
 
 ---
 
 # Supported Hardware
 
-This build is intended for:
+This release is intended for:
 
-| Component | Value |
-|---|---|
-| Printer | Creality K1C 2025/2026 |
-| SoC | X2600 |
-| Architecture | MIPS32 little endian |
-| Display framebuffer | `fb1` |
-| Touch input | `event1` |
-| Display system | Creality vectorp / CS60gui_service environment |
+| Component           | Value                         |
+| ------------------- | ----------------------------- |
+| Printer             | Creality K1C 2025/2026        |
+| SoC                 | X2600 / XBurst II             |
+| Architecture        | MIPS32 little endian          |
+| Display framebuffer | `/dev/fb1`                    |
+| Display resolution  | 800 × 480                     |
+| Display format      | 32 bpp                        |
+| Touch input         | `/dev/input/event1`           |
+| Touch driver        | `goodix-ts`                   |
+| Framebuffer driver  | `jzfb`                        |
+| Creality GUI        | `CS60gui_service` / `vectorp` |
+
+> **Important:** This installer is specifically for the Creality K1C 2025/2026 hardware platform. Other Creality printer models are not supported by this release.
 
 ---
 
-# What does this installation do?
+# What Does the Installation Do?
 
-This installer installs GuppyScreen as a separate application.
+The installer installs GuppyScreen as a separate application.
 
-The final layout on the printer will be:
+The final runtime installation is located at:
 
+```text
+/usr/data/guppyscreen/
 ```
+
+The Git repository is stored separately at:
+
+```text
+/usr/data/GuppyScreen-K1C-2025/
+```
+
+The resulting layout is:
+
+```text
 /usr/data/
 │
 ├── GuppyScreen-K1C-2025/
@@ -71,80 +103,115 @@ The final layout on the printer will be:
     └── themes/
 ```
 
-The Git repository is used for updates.
+The repository is used for installation and updates.
 
-The active GuppyScreen installation runs from:
+The active GuppyScreen application runs from:
 
-```
-/usr/data/guppyscreen/
+```text
+/usr/data/guppyscreen/guppyscreen
 ```
 
 ---
 
-# Changes made to the printer
+# Changes Made to the Printer
 
-## 1. Disable the original Creality GUI startup
+## 1. Creality GUI
 
-The original Creality GUI service:
+The original Creality GUI startup service is:
 
+```text
+/usr/apps/etc/init.d/CS60gui_service
 ```
+
+During GuppyScreen installation, the installer disables the original service by **renaming** it to:
+
+```text
+/usr/apps/etc/init.d/disabled.CS60gui_service
+```
+
+The original service is not permanently deleted.
+
+A verified safety backup is created before changes are made.
+
+During normal uninstall, the stock Creality GUI is restored by renaming:
+
+```text
+disabled.CS60gui_service
+```
+
+back to:
+
+```text
 CS60gui_service
 ```
 
-is disabled during installation.
-
-The installer does **not permanently delete it**.
-
-A backup is created so it can be restored by the uninstall script.
+The installer and uninstaller are specifically designed not to delete the original Creality GUI service.
 
 ---
 
-## 2. Install GuppyScreen startup service
+## 2. GuppyScreen Startup Service
 
-A new startup service is installed:
+A custom GuppyScreen startup service is installed at:
 
-```
+```text
 /usr/apps/etc/init.d/S57guppy_service
 ```
 
 This service:
 
-- waits for Moonraker and Klipper to become ready
-- starts GuppyScreen automatically
-- starts GuppyScreen after every reboot
+* waits for Moonraker and Klipper to become ready
+* starts GuppyScreen automatically
+* starts GuppyScreen after reboot
 
 ---
 
-## 3. Install application files
+## 3. GuppyScreen Application
 
-The following files are installed:
+The following files are installed under:
 
-```
+```text
 /usr/data/guppyscreen/
 ```
 
 Including:
 
-```
+```text
 guppyscreen
 assets/
 themes/
 ```
 
-Assets contain:
+Assets include:
 
-- Material icons
-- fonts
-- SVG resources
+* Material icons
+* Fonts
+* SVG resources
+* Other GuppyScreen resources
 
-Themes include:
+Included themes include:
 
-- blue
-- green
-- pink
-- purple
-- red
-- yellow
+* Blue
+* Green
+* Pink
+* Purple
+* Red
+* Yellow
+
+---
+
+# Configuration
+
+GuppyScreen automatically creates:
+
+```text
+guppyconfig.json
+```
+
+when required.
+
+**The installer does not overwrite or modify `guppyconfig.json`.**
+
+This means existing GuppyScreen configuration is preserved when reinstalling or updating.
 
 ---
 
@@ -154,16 +221,18 @@ Themes include:
 
 Your printer must have:
 
-- root access
-- SSH access
-- internet connection
-- git installed
+* Creality K1C 2025/2026 hardware
+* Root access
+* SSH access
+* Internet connection
+* `wget`
+* `git`
 
 ---
 
-# Automatic installation
+# Automatic Installation
 
-Run this command on your printer:
+Run the following command on the printer:
 
 ```sh
 sh -c "$(wget -qO- https://raw.githubusercontent.com/SnorritxD/GuppyScreen-K1C-2025/main/install.sh)"
@@ -171,161 +240,18 @@ sh -c "$(wget -qO- https://raw.githubusercontent.com/SnorritxD/GuppyScreen-K1C-2
 
 The installer will:
 
-1. Download the repository
-2. Update the repository if it already exists
-3. Verify required files
-4. Install GuppyScreen
-5. Install the startup service
-6. Start GuppyScreen
+1. Download or update the repository
+2. Run hardware and environment checks
+3. Detect the existing installation state
+4. Create and verify a safety backup before making changes
+5. Stop an existing GuppyScreen process if necessary
+6. Prepare the Creality GUI
+7. Install or update GuppyScreen files
+8. Install or update the startup service
+9. Validate the installation
+10. Start GuppyScreen
+11. Perform final safety validation
+
+If GuppyScreen is already installed, the installer will detect existing components and only update components that require changes.
 
 ---
-
-# Manual installation
-
-Alternatively:
-
-```sh
-cd /usr/data
-
-git clone https://github.com/SnorritxD/GuppyScreen-K1C-2025.git
-
-cd GuppyScreen-K1C-2025
-
-chmod +x install.sh
-
-./install.sh
-```
-
----
-
-# What happens during installation?
-
-The installer will:
-
-## Create backups
-
-Backups are created for:
-
-- existing GuppyScreen files
-- Creality GUI startup service
-- assets
-- themes
-
----
-
-## Stop existing GuppyScreen
-
-If an existing GuppyScreen process is running, it will be stopped before installation.
-
----
-
-## Install new files
-
-The installer installs and verifies:
-
-- GuppyScreen binary
-- assets
-- themes
-- startup service
-
----
-
-## Start GuppyScreen
-
-After a successful installation:
-
-```
-S57guppy_service start
-```
-
-is executed.
-
----
-
-# Uninstall / Restore original Creality GUI
-
-To return to the original printer state:
-
-```sh
-cd /usr/data/GuppyScreen-K1C-2025
-
-chmod +x uninstall.sh
-
-./uninstall.sh
-```
-
-The uninstall script will:
-
-- stop GuppyScreen
-- remove the GuppyScreen startup service
-- remove installed GuppyScreen files
-- restore the original Creality GUI service
-- restore backups when available
-
-After uninstall:
-
-```sh
-reboot
-```
-
----
-
-# Updating
-
-To update to the latest version:
-
-```sh
-cd /usr/data/GuppyScreen-K1C-2025
-
-git pull
-
-./install.sh
-```
-
-The installer will update the installed files.
-
----
-
-# Troubleshooting
-
-## Check if GuppyScreen is running
-
-```sh
-ps | grep guppyscreen
-```
-
-## Restart the service
-
-```sh
-/usr/apps/etc/init.d/S57guppy_service restart
-```
-
-## Check logs
-
-```sh
-logread | grep guppy
-```
-
----
-
-# Project Status
-
-This project is specifically developed for:
-
-**Creality K1C 2025/2026**
-
-Other printer models are currently not tested.
-
----
-
-# Credits
-
-Based on the original GuppyScreen project.
-
-This repository contains adaptations and packaging focused on supporting the newer Creality K1C 2025/2026 hardware platform.
-
----
-
-# License
-
-Please refer to the original GuppyScreen license and this repository's license information.
