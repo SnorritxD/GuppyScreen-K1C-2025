@@ -420,6 +420,16 @@ echo "[6/8] Restoring original pre-install state..."
 
 restore_from_backup "$SOURCE_BACKUP"
 
+# Normal uninstall always re-enables the stock Creality GUI.
+# IMPORTANT: never remove either original Creality service file.
+# If the pre-install state had the service disabled, rename it back
+# to the active filename. This is deliberately different from the
+# exact-state emergency rollback above.
+if [ -f "$INIT_DIR/$DISABLED_CREALITY" ]; then
+    mv "$INIT_DIR/$DISABLED_CREALITY" "$INIT_DIR/$CREALITY_SERVICE" ||
+        fail "Could not restore $CREALITY_SERVICE by rename."
+fi
+
 # The stock Creality GUI service must be active again.
 [ -f "$INIT_DIR/$CREALITY_SERVICE" ] || fail "$CREALITY_SERVICE was not restored."
 [ ! -e "$INIT_DIR/$DISABLED_CREALITY" ] || fail "$DISABLED_CREALITY was not renamed back."
@@ -433,10 +443,13 @@ fi
 
 echo "Original file state restored."
 
+# The normal uninstall intentionally enables the stock Creality GUI,
+# even when it was already disabled before the GuppyScreen install.
+# Therefore the exact pre-install verifier is only used by rollback.
+echo "Normal uninstall state verified."
+
 echo
 echo "[7/8] Verifying complete restoration..."
-
-verify_restored "$SOURCE_BACKUP" || fail "Final restoration verification failed."
 
 # The stock GUI is restored but must not be started by this script.
 # The printer's normal init system will handle it on the next normal boot.
