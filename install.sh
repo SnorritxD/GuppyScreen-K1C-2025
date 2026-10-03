@@ -21,7 +21,13 @@ if [ -d "$DIR/.git" ]; then
 else
     echo "Cloning repository..."
     cd /usr/data
-    rm -rf "$DIR"
+
+    if [ -e "$DIR" ]; then
+        echo "ERROR: $DIR already exists but is not a git repository."
+        echo "Remove it manually or move it before installing."
+        exit 1
+    fi
+
     git clone "$REPO" "$DIR"
 fi
 

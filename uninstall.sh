@@ -24,6 +24,10 @@ SERVICE="S57guppy_service"
 CREALITY_SERVICE="CS60gui_service"
 DISABLED_CREALITY="disabled.$CREALITY_SERVICE"
 
+# ORIGINAL CREALITY SERVICE SAFETY RULE:
+# CS60gui_service and disabled.CS60gui_service are never removed.
+# They may only be renamed or copied when restoring state.
+
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 SOURCE_BACKUP=""
 EMERGENCY_BACKUP=""
@@ -130,10 +134,15 @@ verify_source_backup()
 
     verify_backup "$B" || return 1
 
-    # A successful GuppyScreen install on a stock K1C must have preserved
-    # the active stock Creality service in this backup.
-    [ -f "$B/had_creality_active" ] || return 1
-    [ -f "$B/$CREALITY_SERVICE" ] || return 1
+    # A valid pre-install backup must contain the Creality service that
+    # existed before installation. It may have been active or already disabled.
+    if [ -f "$B/had_creality_active" ]; then
+        [ -f "$B/$CREALITY_SERVICE" ] || return 1
+    elif [ -f "$B/had_creality_disabled" ]; then
+        [ -f "$B/$DISABLED_CREALITY" ] || return 1
+    else
+        return 1
+    fi
 
     # The installer stores this exact marker in every pre-install backup.
     grep -q "GuppyScreen K1C installer backup" "$B/README" 2>/dev/null || return 1
@@ -153,23 +162,30 @@ restore_from_backup()
     fi
     sleep 1
 
-    # Remove the Guppy startup service.
+    # Guppy startup service is our own file and may be removed during restore.
     rm -f "$INIT_DIR/$SERVICE"
 
-    # Restore exact pre-install Creality service state.
-    rm -f "$INIT_DIR/$CREALITY_SERVICE" "$INIT_DIR/$DISABLED_CREALITY"
-
+    # IMPORTANT SAFETY RULE:
+    # Never rm/unlink either original Creality service.
+    # Restore the exact Creality state using rename/copy only.
     if [ -f "$B/had_creality_active" ]; then
-        cp -p "$B/$CREALITY_SERVICE" "$INIT_DIR/$CREALITY_SERVICE" || true
+        if [ -f "$INIT_DIR/$DISABLED_CREALITY" ]; then
+            mv "$INIT_DIR/$DISABLED_CREALITY" "$INIT_DIR/$CREALITY_SERVICE" || true
+        fi
+        if [ ! -f "$INIT_DIR/$CREALITY_SERVICE" ] && [ -f "$B/$CREALITY_SERVICE" ]; then
+            cp -p "$B/$CREALITY_SERVICE" "$INIT_DIR/$CREALITY_SERVICE" || true
+        fi
         chmod 755 "$INIT_DIR/$CREALITY_SERVICE" 2>/dev/null || true
-    fi
-
-    if [ -f "$B/had_creality_disabled" ]; then
-        cp -p "$B/$DISABLED_CREALITY" "$INIT_DIR/$DISABLED_CREALITY" || true
+    elif [ -f "$B/had_creality_disabled" ]; then
+        if [ -f "$INIT_DIR/$CREALITY_SERVICE" ]; then
+            mv "$INIT_DIR/$CREALITY_SERVICE" "$INIT_DIR/$DISABLED_CREALITY" || true
+        fi
+        if [ ! -f "$INIT_DIR/$DISABLED_CREALITY" ] && [ -f "$B/$DISABLED_CREALITY" ]; then
+            cp -p "$B/$DISABLED_CREALITY" "$INIT_DIR/$DISABLED_CREALITY" || true
+        fi
         chmod 755 "$INIT_DIR/$DISABLED_CREALITY" 2>/dev/null || true
     fi
 
-    # Restore files that existed before GuppyScreen installation.
     if [ -f "$B/had_binary" ]; then
         mkdir -p "$INSTALL_DIR"
         cp -p "$B/guppyscreen" "$INSTALL_DIR/guppyscreen" || true
@@ -192,7 +208,6 @@ restore_from_backup()
         rm -rf "$INSTALL_DIR/themes"
     fi
 
-    # Restore the previous Guppy service only if it existed before installation.
     if [ -f "$B/had_service" ]; then
         cp -p "$B/$SERVICE" "$INIT_DIR/$SERVICE" || true
         chmod 755 "$INIT_DIR/$SERVICE" 2>/dev/null || true
@@ -211,16 +226,15 @@ verify_restored()
         [ ! -e "$INIT_DIR/$SERVICE" ] || OK=0
     fi
 
+    # Verify the exact Creality service state represented by the backup.
     if [ -f "$B/had_creality_active" ]; then
         cmp -s "$B/$CREALITY_SERVICE" "$INIT_DIR/$CREALITY_SERVICE" || OK=0
-    else
-        [ ! -e "$INIT_DIR/$CREALITY_SERVICE" ] || OK=0
-    fi
-
-    if [ -f "$B/had_creality_disabled" ]; then
-        cmp -s "$B/$DISABLED_CREALITY" "$INIT_DIR/$DISABLED_CREALITY" || OK=0
-    else
         [ ! -e "$INIT_DIR/$DISABLED_CREALITY" ] || OK=0
+    elif [ -f "$B/had_creality_disabled" ]; then
+        cmp -s "$B/$DISABLED_CREALITY" "$INIT_DIR/$DISABLED_CREALITY" || OK=0
+        [ ! -e "$INIT_DIR/$CREALITY_SERVICE" ] || OK=0
+    else
+        OK=0
     fi
 
     # Guppy files
@@ -406,10 +420,9 @@ echo "[6/8] Restoring original pre-install state..."
 
 restore_from_backup "$SOURCE_BACKUP"
 
-# We expect the original stock service to exist because this installer
-# was designed to preserve it before disabling it.
-[ -f "$INIT_DIR/$CREALITY_SERVICE" ] || fail "Original $CREALITY_SERVICE was not restored."
-[ ! -f "$INIT_DIR/$DISABLED_CREALITY" ] || fail "$DISABLED_CREALITY still exists after restore."
+# The stock Creality GUI service must be active again.
+[ -f "$INIT_DIR/$CREALITY_SERVICE" ] || fail "$CREALITY_SERVICE was not restored."
+[ ! -e "$INIT_DIR/$DISABLED_CREALITY" ] || fail "$DISABLED_CREALITY was not renamed back."
 
 # Guppy startup service must be absent unless it genuinely existed before install.
 if [ -f "$SOURCE_BACKUP/had_service" ]; then
@@ -439,7 +452,7 @@ echo "[8/8] Final safety validation..."
 [ "$(count_guppy)" = "0" ] || fail "A GuppyScreen process is still running."
 
 [ -f "$INIT_DIR/$CREALITY_SERVICE" ] || fail "Stock Creality GUI service is missing."
-[ ! -e "$INIT_DIR/$DISABLED_CREALITY" ] || fail "Disabled Creality service still exists."
+[ ! -e "$INIT_DIR/$DISABLED_CREALITY" ] || fail "Disabled Creality service was not renamed back."
 
 if [ ! -f "$SOURCE_BACKUP/had_binary" ]; then
     [ ! -e "$INSTALL_DIR/guppyscreen" ] || fail "GuppyScreen binary still exists."
