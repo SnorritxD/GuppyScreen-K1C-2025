@@ -1,7 +1,7 @@
-<p align="center">
-
 # 🖥️ GuppyScreen-K1C-2025
 
+<p align="center">
+  
   <strong>Custom GuppyScreen build for the Creality K1C 2025/2026</strong>
   <br>
   Bringing GuppyScreen support to the newer X2600 / XBurst II MIPS32 platform.
