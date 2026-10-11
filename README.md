@@ -281,6 +281,15 @@ If GuppyScreen is already installed, the installer detects existing components a
 
 The uninstall process restores the original Creality GUI service.
 
+To remove GuppyScreen and restore the original Creality configuration:
+
+SSH into the printer and go to the GuppyScreen installation directory:
+
+```sh
+cd /usr/data/GuppyScreen-K1C-2025
+./uninstall
+```
+
 The uninstaller is designed to restore:
 
 ```
