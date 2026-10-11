@@ -281,7 +281,7 @@ If GuppyScreen is already installed, the installer detects existing components a
 
 The uninstall process restores the original Creality GUI service.
 
-The installer is designed to restore:
+The uninstaller is designed to restore:
 
 ```
 disabled.CS60gui_service
