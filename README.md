@@ -1,17 +1,21 @@
+<div align="center">
+
 # 🖥️ GuppyScreen-K1C-2025
 
-<p align="center">
-  <strong>Custom GuppyScreen build for the Creality K1C 2025/2026</strong>
-  <br>
-  Bringing GuppyScreen support to the newer X2600 / XBurst II MIPS32 platform.
-</p>
+<strong>A custom GuppyScreen build for the Creality K1C 2025/2026</strong>
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Printer-Creality%20K1C%202025%2F2026-blue?style=for-the-badge">
-  <img src="https://img.shields.io/badge/SoC-X2600-orange?style=for-the-badge">
-  <img src="https://img.shields.io/badge/Architecture-MIPS32-lightgrey?style=for-the-badge">
-  <img src="https://img.shields.io/badge/Display-800x480-green?style=for-the-badge">
-</p>
+<br>
+
+This project brings GuppyScreen support to the newer K1C hardware platform using the X2600 / XBurst II MIPS32 little-endian architecture.
+
+<br>
+
+<img src="https://img.shields.io/badge/Printer-Creality%20K1C%202025%2F2026-blue?style=for-the-badge">
+<img src="https://img.shields.io/badge/Architecture-X2600%20MIPS-orange?style=for-the-badge">
+<img src="https://img.shields.io/badge/Display-/dev/fb1-green?style=for-the-badge">
+<img src="https://img.shields.io/badge/Touch-goodix--ts-purple?style=for-the-badge">
+
+</div>
 
 ---
 
