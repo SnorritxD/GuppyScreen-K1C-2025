@@ -1,7 +1,6 @@
 # 🖥️ GuppyScreen-K1C-2025
 
 <p align="center">
-  
   <strong>Custom GuppyScreen build for the Creality K1C 2025/2026</strong>
   <br>
   Bringing GuppyScreen support to the newer X2600 / XBurst II MIPS32 platform.
@@ -153,4 +152,221 @@ A safety backup is created before changes are made.
 During uninstall the original service is restored:
 
 ```
-disabled.CS60
+disabled.CS60gui_service
+```
+
+back to:
+
+```
+CS60gui_service
+```
+
+---
+
+## 2. GuppyScreen Startup Service
+
+A custom startup service is installed:
+
+```
+/usr/apps/etc/init.d/S57guppy_service
+```
+
+This service:
+
+- Waits for Moonraker and Klipper readiness
+- Starts GuppyScreen automatically
+- Starts GuppyScreen after reboot
+
+---
+
+## 3. GuppyScreen Application
+
+The following files are installed:
+
+```
+/usr/data/guppyscreen/
+```
+
+Including:
+
+```
+guppyscreen
+assets/
+themes/
+```
+
+Included resources:
+
+- Material icons
+- Fonts
+- SVG resources
+- GuppyScreen assets
+
+Included themes:
+
+- Blue
+- Green
+- Pink
+- Purple
+- Red
+- Yellow
+
+---
+
+# 🛠️ Configuration
+
+GuppyScreen automatically creates:
+
+```
+guppyconfig.json
+```
+
+when required.
+
+The installer does not overwrite or modify an existing:
+
+```
+guppyconfig.json
+```
+
+Existing GuppyScreen settings are preserved during reinstall or updates.
+
+---
+
+# 🚀 Installation
+
+## Requirements
+
+Your printer must have:
+
+- Creality K1C 2025/2026 hardware
+- Root access
+- SSH access
+- Internet connection
+- wget
+- git
+
+---
+
+## Automatic Installation
+
+Run the following command on the printer:
+
+```sh
+sh -c "$(wget -qO- https://raw.githubusercontent.com/SnorritxD/GuppyScreen-K1C-2025/main/install.sh)"
+```
+
+The installer will:
+
+1. Download or update the repository.
+2. Run hardware and environment checks.
+3. Detect existing GuppyScreen installations.
+4. Create and verify backups.
+5. Stop an existing GuppyScreen process if required.
+6. Prepare the Creality GUI.
+7. Install or update GuppyScreen files.
+8. Install the startup service.
+9. Validate the installation.
+10. Start GuppyScreen.
+
+If GuppyScreen is already installed, the installer detects existing components and updates only required parts.
+
+---
+
+# 🔄 Restore / Uninstall
+
+The uninstall process restores the original Creality GUI service.
+
+The installer is designed to restore:
+
+```
+disabled.CS60gui_service
+```
+
+back to:
+
+```
+CS60gui_service
+```
+
+Original files are preserved whenever possible.
+
+---
+
+# 🧩 Troubleshooting
+
+## GuppyScreen does not start
+
+Check:
+
+```
+/usr/data/guppyscreen/
+```
+
+and verify that the executable exists.
+
+Check the startup service:
+
+```
+/usr/apps/etc/init.d/S57guppy_service
+```
+
+---
+
+## Touchscreen does not work
+
+Verify:
+
+```
+/dev/input/event1
+```
+
+is available and matches the touchscreen device.
+
+---
+
+## Display problems
+
+Verify:
+
+```
+/dev/fb1
+```
+
+is available and matches the expected framebuffer.
+
+The supported configuration is:
+
+```
+800x480
+32 bpp
+jzfb framebuffer driver
+```
+
+---
+
+# 🤝 Contributing
+
+Community testing, compatibility reports and improvements are welcome.
+
+When reporting issues, include:
+
+- Printer model
+- Firmware version
+- Hardware information
+- Error messages
+- Relevant logs
+
+---
+
+# ⚠️ Final Disclaimer
+
+This project is provided **as-is**.
+
+Installing third-party software on a rooted 3D printer always carries risks. Always keep backups and make sure you understand the changes before installing.
+
+---
+
+<p align="center">
+  <strong>Made for the Creality K1C community</strong> 🧡
+</p>
